@@ -1,0 +1,63 @@
+volumes:
+
+  logs:
+
+services:
+  
+  roscore:
+    image: ctumrs/pairs_uav_system:1.5.0
+    network_mode: host
+    env_file:
+      - ./laptop_nimbro_connection.env
+    tty: true
+    command: roscore
+
+  rostime:
+    image: ctumrs/pairs_uav_system:1.5.0
+    network_mode: host
+    depends_on:
+      - roscore
+    env_file:
+      - ./laptop_nimbro_connection.env
+    tty: true
+    command: bash -c "waitForRos && rosparam set use_sim_time false"
+
+  # allows ROS communication to be shared between multiple devices
+  nimbro_network:
+    image: ctumrs/pairs_uav_system:1.5.0
+    network_mode: host
+    depends_on:
+      - rostime
+    env_file:
+      - ./laptop_nimbro_connection.env
+    extra_hosts:
+        - "DRONE_HOSTNAME:DRONE_IP" # TODO CHANGE HERE
+        - "YOUR_HOSTNAME:YOUR_IP"   # TODO CHANGE HERE
+    volumes:
+      - ./custom_files:/etc/docker/custom_files
+      - ./shared_data:/etc/docker/shared_data
+    tty: true
+    command: bash -c "source /opt/ros/noetic/setup.bash && waitForRos && rosrun pairs_uav_deployment run_nimbro.py /etc/docker/shared_data/network_config.yaml /etc/docker/custom_files/nimbro_config/communication_config.yaml"
+    # entrypoint: ["/bin/bash", "-c"]
+
+  # starts a plaintext logger
+  dogtail:
+    image: klaxalk/dogtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - logs:/etc/logs:consistent
+
+  # this container can be used to access a terminal with ROS inside the compose session
+  terminal:
+    image: ctumrs/pairs_uav_system:1.5.0
+    network_mode: host
+    depends_on:
+      - rostime
+    env_file:
+      - ./laptop_nimbro_connection.env
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - bash --rcfile /opt/ros/noetic/setup.bash
+    privileged: true
+    stdin_open: true
+    tty: true

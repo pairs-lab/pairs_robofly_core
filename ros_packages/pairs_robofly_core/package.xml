@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>pairs_robofly_core</name>
+  <version>1.0.0</version>
+  <description>Core resources for the Fly4Future's Robofly drone</description>
+
+  <author email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</author>
+  <maintainer email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</maintainer>
+
+  <license>BSD 3-Clause</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>cmake_modules</depend>
+  <depend>rospy</depend>
+
+  <depend>libcamera_ros</depend>
+  <depend>pairs_icm_imu_driver</depend>
+
+</package>

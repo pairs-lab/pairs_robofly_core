@@ -1,0 +1,40 @@
+pairs_uav_managers:
+
+  estimation_manager:
+
+    # loaded state estimator plugins
+    # available in pairs_uav_state_estimators: gps_garmin, gps_baro, rtk, aloam, ground_truth, dummy
+    state_estimators: [
+      "gps_baro",
+    ]
+
+    initial_state_estimator: "gps_baro" # will be used as the first state estimator
+
+  uav_manager:
+
+    takeoff:
+
+      after_takeoff:
+        controller: "Se3Controller"
+
+      during_takeoff:
+        controller: "Se3Controller"
+
+    midair_activation:
+
+      after_activation:
+        controller: "Se3Controller"
+
+  gain_manager:
+
+    supersoft:
+
+      mass_estimator:
+
+        km: 0.50 # [kg/s], mass estimator max rate
+
+    soft:
+
+      mass_estimator:
+
+        km: 0.50 # [kg/s], mass estimator max rate

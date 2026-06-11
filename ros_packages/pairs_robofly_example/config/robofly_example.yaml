@@ -1,0 +1,6 @@
+frame_id: "fcu_untilted"
+
+timer_main:
+  rate: 1.0 # [Hz]
+
+heading_rate: 0.6 # [rad/s]

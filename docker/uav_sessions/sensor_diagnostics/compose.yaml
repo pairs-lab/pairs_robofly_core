@@ -1,0 +1,80 @@
+volumes:
+
+  uav_custom_files:
+
+  bag_files:
+
+services:
+
+  # will copy uav-specific configs, launch files and other files from the uav-specific docker image to a shared volume
+  copy_uav_custom_files:
+    image: fly4future/uav_custom_files
+    volumes:
+      - uav_custom_files:/tmp/docker/uav_custom_files:consistent
+    tty: true
+    command: sh -c "rm -rvf /tmp/docker/uav_custom_files/*; mkdir -pv /tmp/docker/uav_custom_files; cp -rv /etc/docker/uav_custom_files/${UAV_TYPE}/${UAV_ID}/* /tmp/docker/uav_custom_files/"
+
+  # starts roscore
+  # this is the first container in the ROS pipeline
+  roscore:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - copy_uav_custom_files
+    env_file:
+      - ./stack.env
+    tty: true
+    command: roscore
+
+  # starts the HW API for connecting the MRS UAV System to PX4
+  hw_api:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    volumes:
+      - /dev/:/dev/
+    privileged: true
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch pairs_uav_px4_api api.launch"
+
+  # starts the camera drivers
+  cameras:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    volumes:
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+    devices:
+      - /dev/:/dev/
+    privileged: true
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch /etc/docker/uav_custom_files/launch_files/cameras.launch"
+
+  rosbridge:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch rosbridge_server rosbridge_websocket.launch"
+
+  # this container can be used to access a terminal with ROS inside the compose session
+  terminal:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - copy_uav_custom_files
+    env_file:
+      - ./stack.env
+    entrypoint: ["/bin/bash", "-c"]
+    volumes:
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+      - /dev/:/dev/
+      - bag_files:/etc/docker/bag_files:consistent
+    command:
+      - bash --rcfile /opt/ros/noetic/setup.bash
+    privileged: true
+    stdin_open: true
+    tty: true

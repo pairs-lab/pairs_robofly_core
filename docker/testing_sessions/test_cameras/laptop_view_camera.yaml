@@ -1,0 +1,61 @@
+volumes:
+
+  logs:
+
+services:
+  
+  # roscore:
+  #   image: ctumrs/pairs_uav_system:1.5.0
+  #   network_mode: host
+  #   env_file:
+  #     - ./laptop_view_camera.env
+  #   tty: true
+  #   command: roscore
+
+  # rostime:
+  #   image: ctumrs/pairs_uav_system:1.5.0
+  #   network_mode: host
+  #   depends_on:
+  #     - roscore
+  #   env_file:
+  #     - ./laptop_view_camera.env
+  #   tty: true
+  #   command: bash -c "waitForRos && rosparam set use_sim_time false"
+
+  # rviz testing
+  rviz:
+    image: ctumrs/pairs_uav_system:1.5.0
+    network_mode: host
+    extra_hosts:
+      - "DRONE_HOSTNAME:DRONE_IP" # TODO CHANGE HERE
+      - "YOUR_HOSTNAME:YOUR_IP"   # TODO CHANGE HERE
+    volumes:
+      - ../../uav_sessions:/etc/docker/uav_sessions
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev/dri:/dev/dri
+    environment:
+      - DISPLAY=${DISPLAY}
+    tty: true
+    # command: bash -c "source /opt/ros/noetic/setup.bash && cd /etc/docker/uav_sessions/camera_test_front/rviz && ./rviz.sh DRONE_HOSTNAME" # TODO CHANGE ME
+    command: bash -c "source /opt/ros/noetic/setup.bash && cd /etc/docker/uav_sessions/camera_test_bottom/rviz && ./rviz.sh DRONE_HOSTNAME" # TODO CHANGE ME
+    # entrypoint: ["/bin/bash"]
+
+  # starts a plaintext logger
+  dogtail:
+    image: klaxalk/dogtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - logs:/etc/logs:consistent
+
+  # this container can be used to access a terminal with ROS inside the compose session
+  terminal:
+    image: ctumrs/pairs_uav_system:1.5.0
+    network_mode: host
+    depends_on:
+      - rviz 
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - bash --rcfile /opt/ros/noetic/setup.bash
+    privileged: true
+    stdin_open: true
+    tty: true

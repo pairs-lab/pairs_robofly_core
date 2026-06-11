@@ -1,0 +1,92 @@
+volumes:
+
+  uav_custom_files:
+
+  shared_data:
+
+  bag_files:
+
+services:
+
+  # will copy session-specific data shared between containers from the shared_data container to a shared volume
+  copy_shared_data:
+    image: fly4future/robofly:shared_data_camera_tests
+    volumes:
+      - shared_data:/tmp/docker/shared_data:consistent
+    tty: true
+    command: sh -c "rm -rvf /tmp/docker/shared_data/*; mkdir -pv /tmp/docker/shared_data; cp -rv /etc/docker/shared_data/* /tmp/docker/shared_data/"
+
+  # will copy uav-specific configs, launch files and other files from the uav-specific docker image to a shared volume
+  copy_uav_custom_files:
+    image: fly4future/uav_custom_files
+    volumes:
+      - uav_custom_files:/tmp/docker/uav_custom_files:consistent
+    tty: true
+    command: sh -c "rm -rvf /tmp/docker/uav_custom_files/*; mkdir -pv /tmp/docker/uav_custom_files; cp -rv /etc/docker/uav_custom_files/${UAV_TYPE}/${UAV_ID}/* /tmp/docker/uav_custom_files/"
+
+  # starts roscore
+  # this is the first container in the ROS pipeline
+  roscore:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - copy_uav_custom_files
+    env_file:
+      - ./stack.env
+    tty: true
+    command: roscore
+
+  # starts the camera drivers
+  cameras:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    volumes:
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+    devices:
+      - /dev/:/dev/
+    privileged: true
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch /etc/docker/uav_custom_files/launch_files/cameras.launch throttled_rate:=5"
+
+  apriltag_front:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - copy_shared_data
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch /etc/docker/shared_data/apriltag_detector.launch custom_config:=/etc/docker/shared_data/apriltag.yaml camera_node:=camera_front_throttled image_topic:=image_raw"
+
+  rosbridge:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch rosbridge_server rosbridge_websocket.launch"
+
+  # this container can be used to access a terminal with ROS inside the compose session
+  terminal:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - copy_shared_data
+      - copy_uav_custom_files
+    env_file:
+      - ./stack.env
+    entrypoint: ["/bin/bash", "-c"]
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+      - /dev/:/dev/
+      - bag_files:/etc/bag_files:consistent
+    command:
+      - bash --rcfile /opt/ros/noetic/setup.bash
+    privileged: true
+    stdin_open: true
+    tty: true

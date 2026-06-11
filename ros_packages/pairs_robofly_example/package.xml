@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>pairs_robofly_example</name>
+  <version>1.0.0</version>
+  <description>Robofly example</description>
+
+  <maintainer email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</maintainer>
+  <author email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</author>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rospy</depend>
+  <depend>pairs_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+  </export>
+
+</package>

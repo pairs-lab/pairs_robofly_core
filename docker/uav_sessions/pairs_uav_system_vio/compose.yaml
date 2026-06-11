@@ -1,0 +1,174 @@
+volumes:
+
+  shared_data:
+
+  uav_custom_files:
+
+  bag_files:
+
+  logs:
+
+services:
+
+  # will copy session-specific data shared between containers from the shared_data container to a shared volume
+  copy_shared_data:
+    image: fly4future/robofly:shared_data_vio
+    volumes:
+      - shared_data:/tmp/docker/shared_data:consistent
+    tty: true
+    command: sh -c "rm -rvf /tmp/docker/shared_data/*; mkdir -pv /tmp/docker/shared_data; cp -rv /etc/docker/shared_data/* /tmp/docker/shared_data/"
+
+  # will copy uav-specific configs, launch files and other files from the uav-specific docker image to a shared volume
+  copy_uav_custom_files:
+    image: fly4future/uav_custom_files
+    volumes:
+      - uav_custom_files:/tmp/docker/uav_custom_files:consistent
+    tty: true
+    command: sh -c "rm -rvf /tmp/docker/uav_custom_files/*; mkdir -pv /tmp/docker/uav_custom_files; cp -rv /etc/docker/uav_custom_files/${UAV_TYPE}/${UAV_ID}/* /tmp/docker/uav_custom_files/"
+
+  # starts roscore
+  # this is the first container in the ROS pipeline
+  roscore:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - copy_shared_data
+      - copy_uav_custom_files
+    env_file:
+      - ./stack.env
+    tty: true
+    command: roscore
+
+  # after roscore is started
+  # -> set a parameter that tells the system that simulation time is NOT used
+  # this container then stops
+  rostime:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - roscore
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && rosparam set use_sim_time false"
+
+  # starts the HW API for connecting the MRS UAV System to PX4
+  hw_api:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    depends_on:
+      - rostime
+    network_mode: host
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+      - /dev/:/dev/
+    privileged: true
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForTime && roslaunch pairs_uav_px4_api api.launch"
+
+  # starts the open_vins visual inertial odometry
+  open_vins:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    depends_on:
+      - rostime
+    network_mode: host
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+      - /dev/:/dev/
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForHw && roslaunch pairs_robofly_core open_vins.launch custom_config:=/etc/docker/uav_custom_files/open_vins/open_vins.yaml"
+
+  # starts the MRS UAV System's core
+  uav_core:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    depends_on:
+      - rostime
+    network_mode: host
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForHw && roslaunch pairs_uav_core core.launch platform_config:=`rospack find pairs_robofly_core`/config/platform_config.yaml custom_config:=/etc/docker/shared_data/custom_config.yaml world_config:=/etc/docker/shared_data/world_local.yaml network_config:=/etc/docker/shared_data/network_config.yaml"
+
+  # starts the camera drivers
+  cameras:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    depends_on:
+      - rostime
+    network_mode: host
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+    devices:
+      - /dev/:/dev/
+    privileged: true
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForTime && roslaunch /etc/docker/uav_custom_files/launch_files/cameras.launch"
+
+  # starts the node that handles automatic initialization of the system and takeoff
+  automatic_start:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    depends_on:
+      - rostime
+    network_mode: host
+    volumes:
+      - shared_data:/etc/docker/shared_data:consistent
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForHw && roslaunch pairs_uav_autostart automatic_start.launch"
+
+  # starts `rosbag record`
+  rosbag:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    depends_on:
+      - rostime
+    network_mode: host
+    volumes:
+      - bag_files:/etc/docker/bag_files:consistent
+      - shared_data:/etc/docker/shared_data:consistent
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForTime && /etc/docker/shared_data/record.sh"
+
+  rosbridge:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    env_file:
+      - ./stack.env
+    tty: true
+    command: bash -c "waitForRos && roslaunch rosbridge_server rosbridge_websocket.launch"
+
+  dogtail:
+    image: klaxalk/dogtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - logs:/etc/logs:consistent
+
+  # this container can be used to access a terminal with ROS inside the compose session
+  terminal:
+    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    network_mode: host
+    depends_on:
+      - rostime
+    env_file:
+      - ./stack.env
+    entrypoint: ["/bin/bash", "-c"]
+    volumes:
+      - bag_files:/etc/docker/bag_files:consistent
+      - shared_data:/etc/docker/shared_data:consistent
+      - uav_custom_files:/etc/docker/uav_custom_files:consistent
+      - /dev/:/dev/
+    command:
+      - bash --rcfile /opt/ros/noetic/setup.bash
+    privileged: true
+    stdin_open: true
+    tty: true
