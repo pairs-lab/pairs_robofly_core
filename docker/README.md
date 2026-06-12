@@ -8,7 +8,7 @@ Custom configuration and files specific to user's docker sessions.
 
 ## [simulation](./simulation)
 
-Local docker compose session for running the MRS UAV System Gazebo simulation with the Robofly.
+Local docker compose session for running the PAIRS UAV System Gazebo simulation with the Robofly.
 
 ## [testing_sessions](./testing_session)
 Docker compose sessions for checking the sensors and network settings from a laptop
