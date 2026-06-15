@@ -26,7 +26,7 @@ services:
     tty: true
     command: roscore
 
-  # starts the HW API for connecting the MRS UAV System to PX4
+  # starts the HW API for connecting the PAIRS UAV System to PX4
   hw_api:
     image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
     network_mode: host

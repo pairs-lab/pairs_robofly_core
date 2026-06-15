@@ -14,7 +14,7 @@ services:
     tty: true
     command: sh -c "rm -rvf /tmp/docker/catkin_workspace/*; mkdir -pv /tmp/docker/catkin_workspace; cp -rv /etc/docker/catkin_workspace/* /tmp/docker/catkin_workspace/"
 
-  # starts the HW API for connecting the MRS UAV System to PX4
+  # starts the HW API for connecting the PAIRS UAV System to PX4
   yolo:
     image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
     network_mode: host

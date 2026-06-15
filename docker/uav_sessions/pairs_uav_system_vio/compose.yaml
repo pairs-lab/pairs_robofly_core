@@ -52,7 +52,7 @@ services:
     tty: true
     command: bash -c "waitForRos && rosparam set use_sim_time false"
 
-  # starts the HW API for connecting the MRS UAV System to PX4
+  # starts the HW API for connecting the PAIRS UAV System to PX4
   hw_api:
     image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
     depends_on:
@@ -82,7 +82,7 @@ services:
     tty: true
     command: bash -c "waitForHw && roslaunch pairs_robofly_core open_vins.launch custom_config:=/etc/docker/uav_custom_files/open_vins/open_vins.yaml"
 
-  # starts the MRS UAV System's core
+  # starts the PAIRS UAV System's core
   uav_core:
     image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
     depends_on:
