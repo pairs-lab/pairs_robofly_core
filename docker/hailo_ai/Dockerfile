@@ -1,4 +1,4 @@
-FROM ctumrs/mrs_uav_system:1.5.0
+FROM thanhnc19/pairs_system:1.5.0
 
 ARG BUILD_PATH="/tmp/build"
 ARG HAILORT_VERSION="v4.18.0"

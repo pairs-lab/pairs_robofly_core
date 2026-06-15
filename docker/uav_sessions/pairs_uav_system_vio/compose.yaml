@@ -29,7 +29,7 @@ services:
   # starts roscore
   # this is the first container in the ROS pipeline
   roscore:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_shared_data
@@ -43,7 +43,7 @@ services:
   # -> set a parameter that tells the system that simulation time is NOT used
   # this container then stops
   rostime:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - roscore
@@ -54,7 +54,7 @@ services:
 
   # starts the HW API for connecting the PAIRS UAV System to PX4
   hw_api:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - rostime
     network_mode: host
@@ -69,7 +69,7 @@ services:
 
   # starts the open_vins visual inertial odometry
   open_vins:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - rostime
     network_mode: host
@@ -84,7 +84,7 @@ services:
 
   # starts the PAIRS UAV System's core
   uav_core:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - rostime
     network_mode: host
@@ -97,7 +97,7 @@ services:
 
   # starts the camera drivers
   cameras:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - rostime
     network_mode: host
@@ -114,7 +114,7 @@ services:
 
   # starts the node that handles automatic initialization of the system and takeoff
   automatic_start:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - rostime
     network_mode: host
@@ -127,7 +127,7 @@ services:
 
   # starts `rosbag record`
   rosbag:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - rostime
     network_mode: host
@@ -140,7 +140,7 @@ services:
     command: bash -c "waitForTime && /etc/docker/shared_data/record.sh"
 
   rosbridge:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     env_file:
       - ./stack.env
@@ -155,7 +155,7 @@ services:
 
   # this container can be used to access a terminal with ROS inside the compose session
   terminal:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - rostime

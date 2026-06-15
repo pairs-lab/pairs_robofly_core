@@ -10,8 +10,8 @@ cd ${MY_PATH}
 ## |                            setup                           |
 ## --------------------------------------------------------------
 
-LOCAL_TAG=mrs_uav_system:1.5.0_hailo_ai
-REGISTRY=ctumrs
+LOCAL_TAG=pairs_system:noetic_hailo_ai
+REGISTRY=thanhnc19
 
 # single-platform image can be stored locally
 # ARCH=linux/amd64

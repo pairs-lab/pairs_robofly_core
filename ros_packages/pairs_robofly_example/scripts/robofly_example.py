@@ -60,8 +60,8 @@ class Node:
 
         rospy.loginfo('[RoboflyExample]: planning trajectory')
 
-        # https://ctu-mrs.github.io/pairs_msgs/srv/TrajectoryReference.html
-        # -> https://ctu-mrs.github.io/pairs_msgs/srv/TrajectoryReferenceSrv.html
+        # pairs_msgs/srv/TrajectoryReference.html
+        # -> pairs_msgs/srv/TrajectoryReferenceSrv.html
         trajectory_srv = TrajectoryReferenceSrvRequest()
 
         trajectory_srv.trajectory.header.frame_id = self.frame_id
@@ -77,7 +77,7 @@ class Node:
 
         for i in range(0, n_steps):
 
-            # https://ctu-mrs.github.io/pairs_msgs/msg/Reference.html
+            # pairs_msgs/msg/Reference.html
             point = Reference()
 
             point.position.x = 0

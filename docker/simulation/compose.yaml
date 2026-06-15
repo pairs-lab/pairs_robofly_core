@@ -17,7 +17,7 @@ volumes:
 services:
 
   roscore:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     env_file:
       - ./stack.env
@@ -27,7 +27,7 @@ services:
   gazebo_simulator:
     depends_on:
       - roscore
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     volumes:
       - config:/etc/config:consistent
@@ -41,7 +41,7 @@ services:
     command: bash -c "waitForRos && roslaunch pairs_uav_gazebo_simulation simulation.launch world_name:=grass_plane gui:=true"
 
   spawn:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host
@@ -53,7 +53,7 @@ services:
     command: bash -c 'waitForGazebo; rosservice call /pairs_drone_spawner/spawn "1 --$$UAV_TYPE --enable-rangefinder"'
 
   hw_api:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host
@@ -65,7 +65,7 @@ services:
     command: bash -c "waitForTime && roslaunch pairs_uav_px4_api api.launch"
 
   uav_core:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host
@@ -77,7 +77,7 @@ services:
     command: bash -c "waitForHw && roslaunch pairs_uav_core core.launch platform_config:=`rospack find pairs_uav_gazebo_simulation`/config/pairs_uav_system/$$UAV_TYPE.yaml custom_config:=/etc/config/custom_config.yaml world_config:=/etc/config/world_config.yaml network_config:=/etc/config/network_config.yaml"
 
   automatic_start:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host
@@ -89,7 +89,7 @@ services:
     command: bash -c "waitForHw && roslaunch pairs_uav_autostart automatic_start.launch"
 
   takeoff:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host
@@ -101,7 +101,7 @@ services:
     command: bash -c "waitForControl && rosservice call /uav1/hw_api/arming 1 && sleep 1 && rosservice call /uav1/hw_api/offboard"
 
   rviz:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host
@@ -117,7 +117,7 @@ services:
     command: bash -c "waitForHw && roslaunch pairs_uav_core rviz.launch"
 
   rviz_interface:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     depends_on:
       - roscore
     network_mode: host

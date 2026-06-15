@@ -26,7 +26,7 @@ services:
 
   # allows ROS communication to be shared between multiple devices
   nimbro_network:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_uav_custom_files
@@ -53,7 +53,7 @@ services:
 
   # this container can be used to access a terminal with ROS inside the compose session
   terminal:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_uav_custom_files

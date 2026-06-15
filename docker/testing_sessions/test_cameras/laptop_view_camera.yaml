@@ -5,7 +5,7 @@ volumes:
 services:
   
   # roscore:
-  #   image: ctumrs/pairs_uav_system:1.5.0
+  #   image: thanhnc19/pairs_system:1.5.0
   #   network_mode: host
   #   env_file:
   #     - ./laptop_view_camera.env
@@ -13,7 +13,7 @@ services:
   #   command: roscore
 
   # rostime:
-  #   image: ctumrs/pairs_uav_system:1.5.0
+  #   image: thanhnc19/pairs_system:1.5.0
   #   network_mode: host
   #   depends_on:
   #     - roscore
@@ -24,7 +24,7 @@ services:
 
   # rviz testing
   rviz:
-    image: ctumrs/pairs_uav_system:1.5.0
+    image: thanhnc19/pairs_system:1.5.0
     network_mode: host
     extra_hosts:
       - "DRONE_HOSTNAME:DRONE_IP" # TODO CHANGE HERE
@@ -49,7 +49,7 @@ services:
 
   # this container can be used to access a terminal with ROS inside the compose session
   terminal:
-    image: ctumrs/pairs_uav_system:1.5.0
+    image: thanhnc19/pairs_system:1.5.0
     network_mode: host
     depends_on:
       - rviz 

@@ -16,7 +16,7 @@ services:
 
   # starts the HW API for connecting the PAIRS UAV System to PX4
   custom_package:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_catkin_workspace
@@ -36,7 +36,7 @@ services:
 
   # this container can be used to access a terminal with ROS inside the compose session
   terminal:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_catkin_workspace

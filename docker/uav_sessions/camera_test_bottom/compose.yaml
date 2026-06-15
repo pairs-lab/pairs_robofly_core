@@ -27,7 +27,7 @@ services:
   # starts roscore
   # this is the first container in the ROS pipeline
   roscore:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_uav_custom_files
@@ -38,7 +38,7 @@ services:
 
   # starts the camera drivers
   cameras:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     volumes:
       - uav_custom_files:/etc/docker/uav_custom_files:consistent
@@ -51,7 +51,7 @@ services:
     command: bash -c "waitForRos && roslaunch /etc/docker/uav_custom_files/launch_files/cameras.launch throttled_rate:=5.0"
 
   apriltag_bottom:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_shared_data
@@ -63,7 +63,7 @@ services:
     command: bash -c "waitForRos && roslaunch /etc/docker/shared_data/apriltag_detector.launch custom_config:=/etc/docker/shared_data/apriltag.yaml camera_node:=camera_down_throttled image_topic:=image_raw"
 
   rosbridge:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     env_file:
       - ./stack.env
@@ -72,7 +72,7 @@ services:
 
   # this container can be used to access a terminal with ROS inside the compose session
   terminal:
-    image: ctumrs/pairs_uav_system:${MRS_UAV_SYSTEM_VERSION}
+    image: thanhnc19/pairs_system:${PAIRS_UAV_SYSTEM_VERSION}
     network_mode: host
     depends_on:
       - copy_shared_data
